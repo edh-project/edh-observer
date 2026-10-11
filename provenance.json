@@ -7,8 +7,8 @@
     {
       "source": "chrome/**",
       "destination": "chrome/**",
-      "mode": "copy-first",
-      "classification": "public browser/Observer surface"
+      "mode": "copy-first + bounded adaptation",
+      "classification": "public browser/Observer surface; old source-path compaction removed; dashboard envelope consumer added"
     },
     {
       "source": "firefox/**",
@@ -19,20 +19,57 @@
     {
       "source": "scripts/run-observer.py",
       "destination": "scripts/run-observer.py",
-      "mode": "copy-first pending adaptation",
-      "classification": "Observer projection/TUI with remaining source-path seams"
+      "mode": "adapted",
+      "classification": "public Observer projection/TUI; machine-specific defaults replaced by env/CLI-driven portable defaults"
     },
     {
       "source": "tests/observer-dom.mjs",
       "destination": "tests/observer-dom.mjs",
       "mode": "verbatim",
-      "classification": "public Observer test"
+      "classification": "public Observer DOM test"
     },
     {
       "source": "tests/observer-parser.mjs",
       "destination": "tests/observer-parser.mjs",
       "mode": "adapted",
-      "classification": "public Observer parser test; Git-history fixture decoupled by verified Qwen experiment"
+      "classification": "public Observer parser test; hidden Git-history dependency replaced by deterministic fixture via verified Qwen experiment"
+    },
+    {
+      "source": "tests/extension.mjs",
+      "destination": "tests/extension-observer.mjs",
+      "mode": "split",
+      "classification": "116 public Observer/browser test blocks retained; 5 runtime-owned blocks excluded"
+    },
+    {
+      "source": "scripts/firefox-smoke.mjs",
+      "destination": "scripts/firefox-smoke-live.mjs",
+      "mode": "adapted",
+      "classification": "live Firefox integration smoke now crosses explicit authenticated Companion boundary; no Core source import"
+    },
+    {
+      "source": "docs/OBS-08-LOCAL-INFERENCE-ACTOR-TRUTH.md",
+      "destination": "docs/OBS-08-LOCAL-INFERENCE-ACTOR-TRUTH.md",
+      "mode": "verbatim",
+      "classification": "public Observer bounded remaining task/acceptance"
+    },
+    {
+      "source": "edh-contracts@1ffb6a3f33f04c7e236966fab04164822c6d421f",
+      "destination": "contracts.lock.json",
+      "mode": "pinned dependency",
+      "classification": "only shared EDH interoperability dependency"
+    },
+    {
+      "source": "X1 dashboard fixture",
+      "destination": "tests/dashboard-fixture.mjs",
+      "mode": "consumer validation",
+      "classification": "recorded public contract fixture accepted by actual Observer envelope consumer"
     }
+  ],
+  "excluded_runtime_tests": [
+    "Observer renders provenance-labeled model usage without inventing unavailable cost",
+    "TERM actor prefers heartbeat-backed observable live session over RDC history",
+    "Local worker publishes budget, context, step and resource progress without guessing thermal telemetry",
+    "Companion health advertises service and dashboard protocol versions for compatibility diagnostics",
+    "A new local-agent run replaces prior terminal state instead of inheriting stale outcome fields"
   ]
 }

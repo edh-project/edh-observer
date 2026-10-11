@@ -1,95 +1,157 @@
 # X2 — Observer Extraction Status
 
-Status: **X2 ACTIVE / PARTIAL**
+Status: **PASS CANDIDATE — clean-checkout proof pending**
 
-Source code baseline: `9ad516ef267fa18075ac15cc4abd78d8553c5122`  
+Source baseline: `9ad516ef267fa18075ac15cc4abd78d8553c5122`  
 Pinned contracts revision: `1ffb6a3f33f04c7e236966fab04164822c6d421f`
 
-## First extracted slice
-
-Copied:
+## Extracted public surface
 
 - `chrome/**`
 - `firefox/**`
 - `scripts/run-observer.py`
-- `tests/observer-dom.mjs`
-- `tests/observer-parser.mjs`
+- `scripts/firefox-smoke-live.mjs`
+- `scripts/live-boundary-smoke.mjs`
+- public Observer/browser tests
+- public Observer boundary/acceptance documentation
 
-The source tree remains intact.
+Source remains copy-first and intact.
 
-## Standalone test result
+## Shared contract dependency
 
-`node --test tests/observer-dom.mjs tests/observer-parser.mjs`
+`contracts.lock.json` pins the local X1 contracts revision.
 
-Result after fixture decoupling:
+The standalone test suite verifies:
 
-- 3 tests
-- 3 PASS
-- 0 FAIL
+- exact contracts Git revision;
+- required public contract files;
+- X1 dashboard fixture envelope;
+- actual Observer dashboard-envelope consumer acceptance.
 
-## Qwen experiment
+Observer does not import Core source.
 
-Experiment:
+## Portability repairs
+
+Removed old checkout/machine assumptions from runtime code:
+
+- `DEFAULT_REPO` now uses `EDH_OBSERVED_REPO` with cwd fallback;
+- `DEFAULT_ROOT` uses `EDH_RUNS_ROOT` with owner-local state fallback;
+- `DEFAULT_COMMANDS` uses `EDH_COMMANDS_LOG` with owner-local state fallback;
+- browser path compaction no longer knows Daniel's old checkout path or username.
+
+CLI `--repo`, `--root`, and `--commands` remain available.
+
+## Extension test split
+
+Source `tests/extension.mjs` contained 121 test blocks.
+
+Public Observer split:
+
+- 116 Observer/browser test blocks retained;
+- 5 runtime-owned blocks intentionally excluded because they directly inspect Core/runtime implementation:
+  - model-usage implementation via `usage-telemetry.mjs`;
+  - live-session wrapper implementation via `observable-session.mjs`;
+  - local worker internals via `local-agent.py` (2 blocks);
+  - Companion server internals via `server/index.mjs`.
+
+The public split now passes without copying those runtime files.
+
+## Firefox boundary
+
+The old Firefox smoke directly imported `../server/index.mjs`.
+
+The extracted `scripts/firefox-smoke-live.mjs` instead accepts only explicit runtime-boundary inputs:
+
+- `EDH_COMPANION_BASE`
+- `EDH_PAIRING_TOKEN`
+- optional OAuth/MCP endpoint overrides
+- optional packaged Firefox artifact override
+
+A boundary test proves there is no Core import.
+
+Full live Firefox interaction is intentionally not auto-run against production because it performs registration/consent/policy actions. It remains an explicit operator-authorized integration test.
+
+## Live Companion boundary proof
+
+Read-only live smoke against the running Companion succeeded without restart or mutation:
+
+- health version: `0.1.51`
+- authenticated dashboard endpoint: PASS
+- dashboard schema: `1.0`
+- executor policy observed: `AUTO`
+
+The request shape matches the browser adapter, including `?adapter=chrome` and pairing Bearer auth.
+
+## Local acceptance
+
+Current standalone gate:
+
+- `npm ci --ignore-scripts`: PASS
+- `npm test`: **125/125 PASS**
+- `npm run lint`: PASS, 0 errors / 0 warnings
+- `npm run build`: PASS
+- Firefox artifact: `dist/execution_delivery_harness_browser_bridge-0.1.51.zip`
+- runtime dependency audit (`npm audit --omit=dev`): 0 vulnerabilities
+- shipped code/test scan for old source/Core imports: clean
+- built Firefox artifact scan for private Core/config material: clean
+- source monorepo regression: **208/208 PASS**
+
+The full dev-tool dependency tree currently reports vulnerabilities inherited through development tooling. These are not runtime dependencies and are not shipped in the extension artifact; do not apply a breaking `npm audit fix --force` during transit.
+
+## Qwen adaptive-harness evidence
+
+X2 produced two additional bounded Qwen task classes.
+
+### test-fixture-decoupling
 
 `~/WORK/_edh/_experiments/x2-qwen-test-fixture-v1/`
 
-Task class: `test-fixture-decoupling`
+- 135.56 s
+- 5 steps
+- model tests 2/2 PASS
+- independent verifier PASS
 
-The initial standalone parser test exposed a hidden monorepo dependency: it called `project_trajectory(Path('.'))` and assumed the current repository already had Git history.
+### code-adaptation
 
-Qwen3.8 under the bounded adaptive harness replaced that assumption with a deterministic temporary Git fixture.
+`~/WORK/_edh/_experiments/x2-qwen-code-adaptation-v1/`
 
-Result:
+Attempt 1:
 
-- runtime: 135.56 s
-- 5 model/tool steps
-- model-authored test run: 2/2 PASS
-- independent verifier: PASS
-- strong `commit_count >= 1` assertion preserved
-- isolated `git init` + committed `TODO.md` fixture created
-- no change to `run-observer.py`
-- no second repair loop
+- 4 sequential reads
+- 0 writes
+- Harness classification: `NO_PROGRESS`
+- stopped early by watchdog
 
-The verified patch was then applied to this repository.
+Targeted repair:
 
-## Boundary findings
+- compact relevant facts supplied
+- bounded replace primitive required
+- 4 steps
+- 2/2 parser tests PASS
+- independent verifier PASS
 
-### Extension test suite is mixed
+This is the first evidence-backed `failure -> execution-envelope adaptation -> PASS` cycle in LLM-04.
 
-The source `tests/extension.mjs` is not safe for blind copying because it directly reads:
+## OBS-08
 
-- `scripts/run-observer.py`
-- `scripts/local-agent.py`
-- `scripts/observable-session.mjs`
-- `scripts/usage-telemetry.mjs`
+`docs/OBS-08-LOCAL-INFERENCE-ACTOR-TRUTH.md` is carried into Observer as an explicit bounded remaining task.
 
-Some of those are runtime/executor concerns. X2 must split Observer assertions from Core/runtime assertions rather than copy private implementation to satisfy tests.
+X2 does not claim OBS-08 implementation complete. Its public-side semantics are isolated and acceptance-defined, so it does not block repository independence.
 
-### Firefox smoke is coupled to Core implementation
+## Remaining gate
 
-Source `scripts/firefox-smoke.mjs` imports:
+One gate remains before X2 can be declared PASS:
 
-`../server/index.mjs`
+**clean-checkout independence proof** using only a clean `edh-observer` checkout plus the pinned `edh-contracts` checkout.
 
-That is a direct Core-source dependency and cannot enter standalone Observer unchanged. The smoke harness must be rewritten against an authenticated runtime/fixture boundary.
+Required clean proof:
 
-### Source-specific path defaults remain
+1. `npm ci`
+2. `npm test`
+3. `npm run lint`
+4. `npm run build`
+5. static Core/source coupling scan
+6. contracts pin validation
+7. package artifact inspection
 
-Current extracted Observer code still contains source-machine assumptions:
-
-- `scripts/run-observer.py` has a hard-coded `DEFAULT_REPO` pointing at the old monorepo;
-- `chrome/observer.js` contains source-path compaction for the old checkout.
-
-These are X2 extraction seams, not reasons to copy Core.
-
-The `local-agent.py` text occurrence in `run-observer.py` is currently process classification evidence, not a source import.
-
-## Next bounded X2 seam
-
-1. replace source-specific path defaults with explicit/configurable Observer inputs;
-2. split `tests/extension.mjs` into public Observer tests vs runtime/Core tests;
-3. replace Firefox smoke's `server/index.mjs` import with a fixture or authenticated runtime boundary;
-4. add the pinned `edh-contracts` dependency/fixture validation;
-5. rerun standalone package tests and static dependency scan.
-
-X2 remains PARTIAL until clean-checkout independence is proven.
+No X3 work starts until this proof is recorded.

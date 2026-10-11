@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "repository": "edh-contracts",
+  "revision": "1ffb6a3f33f04c7e236966fab04164822c6d421f",
+  "local_default": "../edh-contracts",
+  "required_files": [
+    "bridge/dashboard-state.schema.json",
+    "bridge/executor-policy-state.schema.json",
+    "bridge/task-admission-command.schema.json",
+    "events/observer-event.schema.json",
+    "lifecycle/checkpoint.schema.json",
+    "fixtures/dashboard-state.min.json"
+  ]
+}

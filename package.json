@@ -1,10 +1,20 @@
 {
-  "name":"@edh-project/observer",
-  "version":"0.1.0-x2",
-  "private":true,
-  "type":"module",
-  "scripts":{
-    "test":"node --test tests/observer-dom.mjs tests/observer-parser.mjs"
+  "name": "@edh-project/observer",
+  "version": "0.1.51",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/contracts-pin.mjs tests/dashboard-fixture.mjs tests/extension-observer.mjs tests/firefox-smoke-boundary.mjs tests/observer-dom.mjs tests/observer-parser.mjs tests/path-compaction.mjs tests/portable-defaults.mjs",
+    "lint": "web-ext lint --source-dir firefox --warnings-as-errors",
+    "build": "web-ext build --source-dir firefox --artifacts-dir dist --overwrite-dest",
+    "test:firefox:live": "node scripts/firefox-smoke-live.mjs",
+    "test:companion:live": "node scripts/live-boundary-smoke.mjs"
   },
-  "engines":{"node":">=22"}
+  "devDependencies": {
+    "selenium-webdriver": "4.50.0",
+    "web-ext": "10.7.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }

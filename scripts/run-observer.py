@@ -14,9 +14,9 @@ import time
 import urllib.request
 
 
-DEFAULT_ROOT = Path("/Users/dzzk/WORK/browser-bridge-runs/2026-10-03/agent-runs")
-DEFAULT_REPO = Path("/Users/dzzk/WORK/_bridge-local-execution")
-DEFAULT_COMMANDS = Path("/Users/dzzk/WORK/browser-bridge-runs/2026-10-03/commands.log")
+DEFAULT_ROOT = Path(os.environ.get("EDH_RUNS_ROOT") or (Path.home() / ".local/state/execution-delivery-harness/agent-runs")).expanduser().resolve()
+DEFAULT_REPO = Path(os.environ.get("EDH_OBSERVED_REPO", os.getcwd())).expanduser().resolve()
+DEFAULT_COMMANDS = Path(os.environ.get("EDH_COMMANDS_LOG") or (Path.home() / ".local/state/execution-delivery-harness/commands.log")).expanduser().resolve()
 DEFAULT_MCP = Path.home() / ".claude-server-commander/tool-history.jsonl"
 DEFAULT_ACTORS = Path.home() / ".config/dzzk-jso-bridge/observer-actors.json"
 LOCAL_AGENT_STATE = Path.home() / ".local/state/execution-delivery-harness/local-agent.json"

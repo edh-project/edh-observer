@@ -161,9 +161,8 @@ function moveTimelineScopeFocus(direction) {
 
 function compactMessage(message) {
   return String(message||'')
-    .replaceAll('/Users/dzzk/WORK/_bridge-local-execution/','…/harness/')
-    .replaceAll('/Users/dzzk/WORK/browser-bridge-runs/','…/runs/')
-    .replaceAll('/Users/dzzk/','~/');
+    .replace(/\/Users\/[^/\s]+\/WORK\/browser-bridge-runs\//g,'…/runs/')
+    .replace(/\/Users\/[^/\s]+\//g,'~/');
 }
 function timelineTimestamp(ts) {
   const d=new Date(Number(ts||0)*1000);
@@ -2360,6 +2359,15 @@ function renderTimeline(state) {
   renderTimelineLive(state,events.length,Number.isFinite(scopeTotal)?scopeTotal:allEvents.length,projected.length);
 }
 
+function requireDashboardEnvelope(dashboard) {
+  if(!dashboard || typeof dashboard!=='object') throw new Error('dashboard_state_invalid');
+  if(dashboard.schema_version!=='1.0') throw new Error('dashboard_schema_unsupported');
+  for(const key of ['revision','generated_at','observer','project_tasks','rdc','prepared_dispatch','executor_policy']) {
+    if(!Object.prototype.hasOwnProperty.call(dashboard,key)) throw new Error('dashboard_state_missing_'+key);
+  }
+  return dashboard;
+}
+
 let refreshInFlight=null;
 async function refresh() {
   if(refreshInFlight) return refreshInFlight;
@@ -2374,7 +2382,7 @@ async function refresh() {
       currentBrowserConversationId=null;
     }
     try {
-      const dashboard=await send({type:'dashboard-state'});
+      const dashboard=requireDashboardEnvelope(await send({type:'dashboard-state'}));
       const state=dashboard?.observer;
       if(!state) throw new Error('dashboard_state_missing_observer');
       state.chat_local_activity=browserLocalChatActivity;
