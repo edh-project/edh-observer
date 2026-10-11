@@ -1,0 +1,10 @@
+{
+  "name":"@edh-project/observer",
+  "version":"0.1.0-x2",
+  "private":true,
+  "type":"module",
+  "scripts":{
+    "test":"node --test tests/observer-dom.mjs tests/observer-parser.mjs"
+  },
+  "engines":{"node":">=22"}
+}

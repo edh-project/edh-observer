@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Execution Delivery Harness Browser Bridge",
+  "version": "0.1.51",
+  "description": "Share selected browser pages with an authorized MCP client through a local companion, with a live experimental Observer side panel.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "alarms",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "https://chatgpt.com/*"
+  ],
+  "action": {
+    "default_title": "Open Execution Delivery Harness Browser Bridge Observer",
+    "default_icon": {
+      "48": "icon.svg",
+      "96": "icon.svg"
+    }
+  },
+  "background": {
+    "service_worker": "bg-entry.js"
+  },
+  "side_panel": {
+    "default_path": "observer.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src http://127.0.0.1:*"
+  },
+  "icons": {
+    "48": "icon.svg",
+    "96": "icon.svg"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://*.chatgpt.com/*"
+      ],
+      "js": [
+        "chat-context.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

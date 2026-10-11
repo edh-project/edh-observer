@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "Execution Delivery Harness Browser Bridge",
+  "version": "0.1.51",
+  "description": "Share selected browser pages with an authorized MCP client through a local companion. Includes an experimental Observer operator surface.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "action": {
+    "default_title": "Execution Delivery Harness Browser Bridge",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon.svg",
+      "96": "icon.svg"
+    }
+  },
+  "background": {
+    "scripts": [
+      "core.js",
+      "read-page.js",
+      "background.js"
+    ]
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src http://127.0.0.1:*"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "browser-bridge@dzzk.dev",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "websiteContent",
+          "browsingActivity",
+          "personalCommunications",
+          "personallyIdentifyingInfo"
+        ]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
+  "icons": {
+    "48": "icon.svg",
+    "96": "icon.svg"
+  }
+}

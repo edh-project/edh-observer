@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en" data-build-version="0.1.51">
+<head>
+  <meta charset="utf-8">
+  <title>Execution Delivery Harness — Observer</title>
+  <link rel="stylesheet" href="ui.css">
+  <link rel="stylesheet" href="observer.css">
+</head>
+<body class="observer">
+  <header class="status-header">
+    <div class="actor-strip-wrap">
+      <div id="actor-strip" class="actor-strip actor-strip-primary" aria-label="Harness-observed actors and sources. Presence here does not imply native ChatGPT integration."></div>
+      <div id="git-popover" class="runtime-popover git-popover" role="group" aria-label="Git working-tree snapshot">
+        <strong>Git working-tree state</strong>
+        <p id="git-popover-description">Repository state · git status --short · snapshot, not an activity signal.</p>
+        <details id="git-popover-paths">
+          <summary id="git-popover-paths-label">Changed paths</summary>
+          <ul id="git-popover-path-list"></ul>
+        </details>
+        <div class="git-popover-actions"><button id="git-popover-inspect" type="button">Inspect Git evidence</button><button id="git-popover-close" type="button">Close</button></div>
+      </div>
+    </div>
+    <div class="status-line">
+      <span id="state-dot" class="state-dot" aria-hidden="true"></span>
+      <button id="state-label" class="status-explain-trigger" type="button" aria-haspopup="true" aria-controls="status-explain-popover" aria-expanded="false">LOADING</button>
+      <span id="state-age" class="state-age">--:--</span>
+      <div class="status-context">
+        <span id="companion-status" class="companion-status unknown" title="Local EDH companion connection">COMPANION ?</span>
+        <button id="active-chain" class="active-chain status-explain-trigger" type="button" aria-haspopup="true" aria-controls="status-explain-popover" aria-expanded="false">observer</button>
+      </div>
+      <button id="settings-toggle" class="icon-button" aria-label="Bridge settings" title="Bridge settings">⚙</button>
+      <div class="help-cluster">
+        <button id="help-toggle" class="icon-button" type="button" aria-label="Open Observer help" title="Open Observer help">?</button>
+      </div>
+      <span class="version-cluster" tabindex="0" aria-label="Extension version; hover or focus for copyable runtime diagnostics" aria-describedby="runtime-popover">
+        <span id="extension-version" class="header-version"></span>
+        <button id="reload-version" class="version-reload" type="button" aria-label="Reload extension update" hidden>↻</button>
+        <div id="runtime-popover" class="runtime-popover" role="tooltip" aria-label="Runtime summary">
+          <strong>Runtime summary</strong>
+          <div id="runtime-grid" class="runtime-grid runtime-grid-compact"></div>
+        </div>
+      </span>
+    </div>
+    <div id="status-explain-popover" class="runtime-popover status-explain-popover" role="group" aria-label="Observed status explanation">
+      <strong id="status-explain-title">Observation scope</strong>
+      <p id="status-explain-body"></p>
+      <p id="status-explain-note"></p>
+      <div class="git-popover-actions"><button id="status-explain-close" type="button">Close</button></div>
+    </div>
+    <div id="version-line" class="version-line" aria-label="Runtime version warning" hidden>
+      <span id="observer-build" class="muted" title="Observer UI build">trace-ui12</span>
+      <span id="gateway-version" class="muted gateway-version" title="Gateway runtime / repository version"></span>
+    </div>
+    <button id="attribution-health" class="attribution-health" type="button" title="Recent chat-attribution health">
+      <span id="attribution-health-label">Attribution — checking…</span>
+    </button>
+  </header>
+
+  <section id="connection-requests" class="connection-requests" aria-live="polite" hidden></section>
+
+  <section id="reliability-incidents" class="reliability-incidents" aria-live="polite" hidden>
+    <div class="incident-head"><strong>Reliability incident</strong><span id="incident-meta" class="muted"></span></div>
+    <div id="incident-current" class="incident-current"></div>
+    <details id="incident-history"><summary>Recent incidents</summary><div id="incident-list" class="incident-list"></div></details>
+  </section>
+
+  <aside id="help-panel" class="overlay-panel" hidden>
+    <div class="overlay-head"><strong>Observer help</strong><button id="help-close" class="icon-button" aria-label="Close help">×</button></div>
+    <section class="help-section">
+      <h2>Concepts</h2>
+      <p><strong>Conversation is context. Project is delivery scope. Task is intended work. Dispatch is a handoff. Run is one execution attempt. Span is one operation. Event is evidence.</strong></p>
+      <pre class="help-diagram">Project → Task → Ready handoff → Dispatch → Run → Span → Event
+             ↑                         ↓
+       not a Run yet             result / artifacts</pre>
+      <p><strong>Current task</strong> answers: what intended work is the Harness orchestrating, and where is that task in its lifecycle?</p>
+      <p><strong>Run</strong> currently shows a wider execution cycle: pre-run handoff, the strict Run execution, and post-run result. A future label such as <strong>Execution</strong> or <strong>Execution cycle</strong> may be more precise.</p>
+      <p><strong>Project readiness</strong> is progress for one selected Harness Project. It is <strong>not</strong> progress of the current ChatGPT conversation. One conversation may touch multiple Projects, and one Project may continue across multiple conversations, devices and executors.</p>
+      <p><strong>Ready handoff</strong> is a validated execution envelope that has not yet crossed into a Run. <strong>Dispatch</strong> performs that one-way transition. A historical <strong>PASS</strong> result means the dispatched Run already satisfied acceptance and must not show a Dispatch action.</p>
+      <pre class="help-diagram">Conversation / Turn
+  → Current task
+  → Prepared → Dispatch → Run
+  → Execution spans
+  → Transports / background
+  → Attribution / evidence
+  → Verification
+  → selected Project readiness</pre>
+      <p><strong>Actors</strong> are tools, transports, models and runtimes observed by the Harness. <strong>Attribution</strong> links evidence to a conversation/turn. <strong>browser_inferred</strong> means the chat identity was conservatively inferred from one active browser turn; it is not authoritative transport identity.</p>
+    </section>
+    <section class="help-section">
+      <h2>Controls</h2>
+      <p><strong>Settings</strong> manages explicit Browser Bridge page sharing. <strong>Update</strong> appears only when the loaded extension differs from disk. <strong>Open source chat</strong> navigates from scoped evidence to its owning ChatGPT conversation.</p>
+      <p><button id="gw01-acceptance" class="primary">Run GW-01 correlation acceptance</button> <span id="gw01-acceptance-status" class="muted"></span></p>
+    </section>
+    <section class="help-section">
+      <h2>Diagnostics</h2>
+      <div id="help-runtime-grid" class="runtime-grid"></div>
+      <details><summary>Current run inspection</summary>
+        <div id="run-summary" class="run-summary"></div>
+        <details id="run-task-details"><summary>Task / prompt</summary><pre id="run-task"></pre></details>
+        <details><summary>Artifacts and logs</summary><div id="run-artifacts" class="artifact-list"></div></details>
+      </details>
+    </section>
+  </aside>
+
+  <aside id="actor-inspector" class="overlay-panel actor-inspector" hidden>
+    <div class="overlay-head"><strong>Actor evidence · <span id="actor-inspector-title">?</span></strong><button id="actor-inspector-close" class="icon-button" aria-label="Close actor evidence">×</button></div>
+    <div id="actor-inspector-summary" class="run-summary"></div>
+    <div class="actor-inspector-actions"><button id="actor-inspector-timeline" type="button">Show actor in timeline</button></div>
+    <section class="help-section">
+      <h2>Evidence events</h2>
+      <p id="actor-evidence-note" class="actor-evidence-note"></p>
+      <div id="actor-evidence-events" class="actor-evidence-events" role="list"></div>
+      <details id="actor-raw-details" class="actor-raw-details"><summary>Original source / console (verbatim)</summary><pre id="actor-inspector-raw" class="actor-raw">No evidence captured yet.</pre></details>
+    </section>
+  </aside>
+
+  <aside id="timeline-raw-inspector" class="overlay-panel timeline-raw-inspector" role="dialog" aria-modal="true" aria-labelledby="timeline-raw-title" hidden>
+    <div class="overlay-head">
+      <strong id="timeline-raw-title">Timeline source evidence</strong>
+      <button id="timeline-raw-close" class="icon-button" type="button" aria-label="Close timeline source evidence">×</button>
+    </div>
+    <p id="timeline-raw-note" class="muted">Source event objects received by the Observer; projections are not ledger mutations.</p>
+    <div class="raw-inspector-actions"><button id="timeline-raw-copy" type="button">Copy JSON</button><span id="timeline-raw-copy-status" role="status"></span></div>
+    <pre id="timeline-raw-json" class="timeline-raw-json" tabindex="0"></pre>
+  </aside>
+
+  <aside id="settings-panel" class="settings-panel" hidden>
+    <div class="settings-head"><strong>Bridge controls</strong><button id="settings-close" class="icon-button" aria-label="Close settings">×</button></div>
+    <p id="bridge-status" class="muted">Checking connection…</p>
+    <div id="share-target" class="target-preview" aria-live="polite">Current target: checking…</div>
+    <button id="share-current" class="primary" disabled>Share current tab for 30 minutes</button>
+    <button id="pause-actions">Pause all actions</button>
+    <div id="shared-pages"></div>
+    <p class="muted">Only explicitly shared HTTP(S) tabs are readable. Navigation, reload, tab close, extension restart or manual revoke ends access.</p>
+    <p><button id="open-options">Advanced settings</button></p>
+    <p id="settings-error" role="alert"></p>
+  </aside>
+
+  <main>
+    <section id="timeline-section" class="evidence-section">
+      <div class="section-head">
+        <h2>Unified timeline</h2>
+        <div id="timeline-scope-control" class="timeline-scope-control">
+          <button id="timeline-scope-trigger" class="timeline-scope-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="timeline-scope-list">
+            <span id="timeline-scope-label">All activity</span><span class="timeline-scope-caret" aria-hidden="true">▾</span>
+          </button>
+          <div id="timeline-scope-list" class="timeline-scope-list" role="listbox" aria-label="Timeline scope" hidden></div>
+        </div>
+        <div id="timeline-view" class="timeline-view-control" role="group" aria-label="Timeline view">
+          <span class="timeline-view-label">View</span>
+          <button type="button" data-view="raw" aria-pressed="true">Raw</button>
+          <button type="button" data-view="grouped" aria-pressed="false">Grouped</button>
+          <button type="button" data-view="semantic" aria-pressed="false">Semantic</button>
+        </div>
+        <div id="observer-density" class="timeline-view-control observer-density" role="group" aria-label="Observer information density">
+          <span class="timeline-view-label">Density</span>
+          <button type="button" data-density="compact" aria-pressed="false">Compact</button>
+          <button type="button" data-density="normal" aria-pressed="true">Normal</button>
+          <button type="button" data-density="forensic" aria-pressed="false">Forensic</button>
+        </div>
+        <span id="current-conversation" class="muted"></span>
+        <div id="position" class="timeline-live-cluster">
+          <button id="timeline-live-trigger" class="timeline-live-trigger" type="button" aria-label="Live timeline status">
+            <span id="timeline-live-dot" class="timeline-live-dot" aria-hidden="true"></span><span>LIVE</span>
+          </button>
+          <span id="timeline-quiescence" class="timeline-quiescence settling" title="Observed execution boundary is still settling">SETTLING</span>
+          <div id="timeline-live-popover" class="timeline-live-popover" role="tooltip">
+            <div class="live-popover-head">
+              <strong>Live status</strong>
+              <span id="timeline-live-updated" class="live-popover-updated">updated —</span>
+            </div>
+            <div class="live-popover-grid">
+              <span class="live-popover-key">Activity</span><strong id="timeline-activity-summary">Idle</strong>
+              <span class="live-popover-key">Boundary</span><strong id="timeline-quiescence-summary">SETTLING</strong>
+              <span class="live-popover-key">Last evidence</span><span id="timeline-last-evidence">—</span>
+              <span class="live-popover-key">Window</span><span id="timeline-window-summary">Waiting for timeline data…</span>
+              <span class="live-popover-key">View</span><span id="timeline-view-summary">Raw</span>
+              <span class="live-popover-key">Usage</span><span id="timeline-usage-summary">not available for current run</span>
+            </div>
+            <div id="timeline-quiescence-reason" class="live-popover-callout"></div>
+            <div class="live-popover-foot">Boundary quality: <strong>observer_inferred</strong> · not transport-authoritative until GW-01 owns dispatch.</div>
+          </div>
+        </div>
+      </div>
+      <div id="timeline" class="timeline" role="log" aria-live="polite"></div>
+    </section>
+
+    <details id="task-lifecycle-section" class="panel-section" open>
+      <summary class="panel-summary" title="Open current task details: goal, state, progress, control and budget">
+        <span class="panel-summary-copy">
+          <span class="panel-heading-line"><span id="task-lifecycle-title" class="panel-title">Current task</span><span id="task-state" class="panel-state"></span></span>
+          <span id="task-preview" class="panel-preview muted">No task details yet</span>
+        </span>
+        <span id="task-safety" class="panel-meta panel-badge muted"></span>
+      </summary>
+      <div class="panel-body">
+        <section class="detail-group">
+          <h3>Goal &amp; state</h3>
+          <div id="task-lifecycle-summary" class="run-summary"></div>
+          <div id="task-evidence-actions" class="evidence-actions"></div>
+        </section>
+        <section class="detail-group">
+          <h3>Progress &amp; budget</h3>
+          <div id="task-lifecycle-work" class="run-summary"></div>
+          <div id="task-usage" class="usage-panel" hidden></div>
+        </section>
+      </div>
+    </details>
+
+    <details id="run-section" class="panel-section" open>
+      <summary class="panel-summary" aria-label="Open Run details: current execution, prepared handoff and last result">
+        <span class="panel-summary-copy">
+          <span class="panel-heading-line"><span class="panel-title">Run</span><span id="run-state" class="panel-state"></span><button id="run-explain-trigger" class="run-explain-trigger" type="button" aria-controls="run-explain-popover" aria-expanded="false" aria-label="Explain Run history">?</button></span>
+          <span id="run-preview" class="panel-preview muted">No run details yet</span>
+        </span>
+        <span id="run-meta" class="panel-meta muted"></span>
+      </summary>
+      <div id="run-explain-popover" class="run-explain-popover" role="group" hidden>
+        <strong>Run identity and history</strong>
+        <p id="run-explain-body">No current unified Run is observed. Historical evidence below may belong to different tasks and runs.</p>
+        <p>A historical PASS does not mean the current task passed. Compare task/run identities before relating records.</p>
+        <div class="git-popover-actions"><button id="run-explain-close" type="button">Close</button></div>
+      </div>
+      <div class="panel-body">
+        <p id="run-identity-warning" class="run-identity-warning" role="note" hidden></p>
+        <section id="run-execution-group" class="detail-group" hidden>
+          <h3>Execution &amp; ownership · independent records</h3>
+          <details id="detached-run-section" class="historical-record" hidden>
+            <summary><strong>Detached Harness</strong><span id="detached-run-label" class="historical-record-label"></span><span id="detached-heartbeat" class="muted"></span></summary>
+            <div id="detached-run-summary" class="run-summary"></div>
+          </details>
+          <div id="rdc-execution-section" class="historical-record" hidden>
+            <h4>RDC execution</h4>
+            <div id="rdc-execution-summary" class="run-summary"></div>
+          </div>
+          <details id="local-executor-section" class="historical-record" hidden>
+            <summary><strong>Local executor</strong><span id="local-executor-label" class="historical-record-label"></span></summary>
+            <div id="local-executor-summary" class="run-summary"></div>
+          </details>
+        </section>
+        <section id="run-handoff-group" class="detail-group" hidden>
+          <h3>Handoff &amp; result <span id="prepared-result-meta" class="muted"></span></h3>
+          <div id="prepared-dispatch" class="inline-action" hidden>
+            <strong>Ready handoff</strong>
+            <span id="prepared-dispatch-label"></span>
+            <div class="executor-policy-row">
+              <label for="executor-policy-select">Executor</label>
+              <select id="executor-policy-select" aria-label="Executor policy for next prepared task">
+                <option value="AUTO">Auto</option>
+                <option value="EDH">EDH</option>
+                <option value="RDC">RDC</option>
+                <option value="COMPARE">Compare EDH vs RDC</option>
+              </select>
+              <button id="create-compare-plan" type="button">Create compare plan</button>
+            </div>
+            <span id="executor-policy-status" class="muted"></span>
+            <button id="dispatch-prepared" class="primary">Dispatch</button>
+            <span id="prepared-dispatch-status" class="muted"></span>
+          </div>
+          <details id="prepared-result-section" class="historical-record" hidden>
+            <summary><strong>Last handoff result</strong><span id="prepared-result-label" class="historical-record-label"></span></summary>
+            <div id="prepared-result-summary" class="run-summary"></div>
+          </details>
+        </section>
+      </div>
+    </details>
+
+    <details id="project-status-section" class="panel-section">
+      <summary class="panel-summary" title="Delivery progress for the explicitly selected Harness Project; this is not chat progress">
+        <span class="panel-summary-copy">
+          <span class="panel-heading-line"><span class="panel-title">Project readiness</span></span>
+          <span id="project-status-project" class="panel-preview muted">Project identity unavailable</span>
+        </span>
+        <span id="project-status-meta" class="panel-meta muted"></span>
+      </summary>
+      <div class="panel-body">
+        <div id="project-status-summary" class="run-summary"></div>
+        <section class="detail-group project-trajectory-group">
+          <h3>Project trajectory</h3>
+          <div id="project-trajectory-summary" class="run-summary"></div>
+          <div id="project-readiness-history" class="trajectory-history"></div>
+          <div id="project-version-history" class="trajectory-history"></div>
+        </section>
+        <section class="detail-group project-admission-group">
+          <h3>Backlog admission</h3>
+          <div class="project-admission-controls">
+            <label for="project-task-select">Backlog item</label>
+            <select id="project-task-select" aria-label="Select an incomplete project backlog item"></select>
+            <button id="take-selected-task" type="button">Take selected</button>
+            <button id="take-next-task" type="button" class="primary">Take next</button>
+            <button id="prepare-current-task" type="button">Prepare handoff</button>
+            <button id="release-current-task" type="button">Release current</button>
+          </div>
+          <div id="project-task-description" class="project-task-description" role="note" aria-live="polite"></div>
+          <div id="project-task-recommendation" class="muted"></div>
+          <div id="project-task-admission-status" class="muted"></div>
+        </section>
+      </div>
+    </details>
+
+    <details id="spans-section" class="panel-section">
+      <summary class="panel-summary" title="Causally scoped tool/process operations">
+        <span class="panel-title">Execution spans</span>
+        <span id="span-count" class="panel-meta muted"></span>
+      </summary>
+      <div class="panel-body"><div id="spans" class="spans"></div></div>
+    </details>
+
+    <details id="rdc-section" class="panel-section">
+      <summary class="panel-summary" title="Remote Desktop Commander and background process diagnostics">
+        <span class="panel-title">Transports &amp; background</span>
+        <span id="rdc-meta" class="panel-meta muted"></span>
+      </summary>
+      <div class="panel-body"><div id="rdc-activity" class="run-summary transport-summary"></div></div>
+    </details>
+
+    <details id="trace-section" class="panel-section">
+      <summary class="panel-summary" title="Inspect provenance quality and the latest correlated causal trace">
+        <span class="panel-summary-copy">
+          <span class="panel-heading-line"><span id="trace-title" class="panel-title">Attribution diagnostics</span></span>
+          <span id="trace-meta" class="panel-preview muted"></span>
+        </span>
+      </summary>
+      <div class="panel-body">
+        <p class="section-explainer">Shown only when recent work contains an attribution anomaly. Each row is evidence that currently lacks a trustworthy conversation identity; healthy attribution stays out of the main panel.</p>
+        <div id="trace" class="trace"></div>
+      </div>
+    </details>
+
+    <p id="error" role="alert"></p>
+  </main>
+  <script src="observer.js"></script>
+</body>
+</html>

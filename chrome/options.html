@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Execution Delivery Harness Browser Bridge — Settings & Status</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body>
+  <h1>Execution Delivery Harness Browser Bridge</h1>
+  <p><strong>What this is:</strong> a local, user-controlled bridge that lets an authorized MCP client such as ChatGPT read text from browser pages you explicitly share. The same local companion also feeds the Browser Bridge Observer.</p>
+
+  <h2>Current stage</h2>
+  <p><strong>Read-only page bridge:</strong> working baseline. <strong>Observer:</strong> usable local development feature, still evolving.</p>
+  <ul>
+    <li>Chrome page sharing and read/find tools: implemented in the current local development worktree.</li>
+    <li>Chrome Side Panel Observer: implemented and locally verified.</li>
+    <li>Firefox Observer page: implemented; Sidebar adapter is not yet verified.</li>
+    <li>Process/OpenCode/Qwen/llama/Git timeline: implemented.</li>
+    <li>ChatGPT Web activity/quiescence: browser-observed <strong>WORKING / SETTLING / QUIESCENT</strong> is implemented, but remains observer-inferred rather than transport-authoritative until GW-01 owns real dispatch.</li>
+    <li>Firefox Sidebar adapter, Opera observer adapter and public store publication are not yet verified.</li>
+  </ul>
+  <p><strong>Important:</strong> the ChatGPT composer may look ready while work is still settling. Use the Observer boundary state as conservative evidence, not as transport authority: <strong>QUIESCENT</strong> is currently observer-inferred until GW-01 owns the real dispatch boundary.</p>
+
+  <h2>Connect this browser profile</h2>
+  <ol>
+    <li>Start the local companion from the repository with <code>npm start</code>.</li>
+    <li>Copy the persistent pairing token on macOS with <code>pbcopy &lt; ~/.config/dzzk-jso-bridge/pairing-token</code>.</li>
+    <li>Paste it below, accept the disclosure and connect. Each Firefox/Chrome profile is paired once; the same companion token is reused.</li>
+  </ol>
+
+  <form id="form">
+    <label for="companion-port">Local control / observation plane port</label>
+    <input id="companion-port" type="number" min="1" max="65535" step="1" value="43119" required>
+    <p><small>Default: <code>43119</code>. The extension connects to <code>http://127.0.0.1:&lt;port&gt;</code>. If the local companion is started with a custom <code>EDH_COMPANION_PORT</code> (including from project <code>.env</code>), enter the same port here.</small></p>
+    <label for="token">Extension pairing token</label>
+    <input id="token" type="password" autocomplete="off" required minlength="43" maxlength="43">
+    <label><input id="consent" type="checkbox" style="width:auto" required> I understand that text, titles and URLs from pages I explicitly share pass through the local companion to the MCP client I authorize. They can contain recruiter messages and personal information.</label>
+    <button class="primary" type="submit">Connect companion</button>
+  </form>
+  <p id="message" role="status"></p>
+  <p id="error" role="alert"></p>
+
+  <p><button id="disconnect">Disconnect and revoke all</button> <button id="observer">Open Observer</button></p>
+
+  <h2>What page sharing does</h2>
+  <p>Only normal pages you explicitly share are readable. Access expires after 30 minutes and is revoked by navigation, reload, tab closure, extension restart or manual revocation. The bridge reads text; it does not log in, send messages or submit applications.</p>
+
+  <h2>What the Observer does</h2>
+  <p>The Observer combines completed MCP history, terminal markers, OpenCode/Qwen events, llama.cpp status and Git state into one timeline. It can reconstruct some child-process lifecycles, but completed MCP history is written after a tool returns, so in-flight Remote Desktop calls can still be temporarily invisible.</p>
+
+  <h2>Documentation</h2>
+  <p>
+    <a href="https://github.com/dzzk-r/execution-delivery-harness/blob/main/docs/STATUS.md" target="_blank" rel="noreferrer">Current status</a> ·
+    <a href="https://github.com/dzzk-r/execution-delivery-harness/blob/main/docs/OBSERVER-ARCHITECTURE.md" target="_blank" rel="noreferrer">Observer architecture</a> ·
+    <a href="https://github.com/dzzk-r/execution-delivery-harness/blob/main/docs/CHROME-LOCAL-INSTALL.md" target="_blank" rel="noreferrer">Chrome local install</a> ·
+    <a href="https://github.com/dzzk-r/execution-delivery-harness/blob/main/docs/PRIVACY.md" target="_blank" rel="noreferrer">Privacy</a> ·
+    <a href="https://github.com/dzzk-r/execution-delivery-harness/issues" target="_blank" rel="noreferrer">Support</a>
+  </p>
+
+  <script src="options.js"></script>
+</body>
+</html>

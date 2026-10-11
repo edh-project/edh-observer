@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "source_repository": "/Users/dzzk/WORK/_bridge-local-execution",
+  "source_commit": "9ad516ef267fa18075ac15cc4abd78d8553c5122",
+  "contracts_revision": "1ffb6a3f33f04c7e236966fab04164822c6d421f",
+  "units": [
+    {
+      "source": "chrome/**",
+      "destination": "chrome/**",
+      "mode": "copy-first",
+      "classification": "public browser/Observer surface"
+    },
+    {
+      "source": "firefox/**",
+      "destination": "firefox/**",
+      "mode": "copy-first",
+      "classification": "public browser/Observer surface"
+    },
+    {
+      "source": "scripts/run-observer.py",
+      "destination": "scripts/run-observer.py",
+      "mode": "copy-first pending adaptation",
+      "classification": "Observer projection/TUI with remaining source-path seams"
+    },
+    {
+      "source": "tests/observer-dom.mjs",
+      "destination": "tests/observer-dom.mjs",
+      "mode": "verbatim",
+      "classification": "public Observer test"
+    },
+    {
+      "source": "tests/observer-parser.mjs",
+      "destination": "tests/observer-parser.mjs",
+      "mode": "adapted",
+      "classification": "public Observer parser test; Git-history fixture decoupled by verified Qwen experiment"
+    }
+  ]
+}
