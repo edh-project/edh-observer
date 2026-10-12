@@ -1,0 +1,36 @@
+name: observer-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: edh-observer
+      - uses: actions/checkout@v4
+        with:
+          repository: edh-project/edh-contracts
+          ref: 1ffb6a3f33f04c7e236966fab04164822c6d421f
+          path: edh-contracts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: edh-observer/package-lock.json
+      - working-directory: edh-observer
+        run: npm ci --ignore-scripts
+      - working-directory: edh-observer
+        run: npm test
+      - working-directory: edh-observer
+        run: npm run lint
+      - working-directory: edh-observer
+        run: npm run build
