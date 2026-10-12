@@ -71,5 +71,17 @@
     "Local worker publishes budget, context, step and resource progress without guessing thermal telemetry",
     "Companion health advertises service and dashboard protocol versions for compatibility diagnostics",
     "A new local-agent run replaces prior terminal state instead of inheriting stale outcome fields"
-  ]
+  ],
+  "clean_checkout_proof": {
+    "workspace": "/Users/dzzk/WORK/_edh/_experiments/x2-clean-checkout",
+    "observer_revision": "d5c2d56f50402b62d2fb0b44047c5e16a64915ac",
+    "contracts_revision": "1ffb6a3f33f04c7e236966fab04164822c6d421f",
+    "source_checkout_present": false,
+    "npm_ci": "PASS",
+    "tests": "125/125 PASS",
+    "firefox_lint": "PASS",
+    "firefox_build": "PASS",
+    "static_core_source_scan": "PASS",
+    "artifact_private_material_scan": "PASS"
+  }
 }
